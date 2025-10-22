@@ -4,6 +4,7 @@ import Stripe from "stripe";
 const currency = "inr";
 const delivery_Fee = 50;
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const origin = "http://localhost:5174";
 const placedOrderCOD = async (req, res) => {
   const { userId, items, address, amount } = req.body;
   const orderData = {

@@ -16,6 +16,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MyProfile from "./pages/MyProfile";
 import Verify from "./pages/Verify";
+import ClotheWarping from "./pages/clothe-warping";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/myprofile" element={<MyProfile />} />
         <Route path="/verify" element={<Verify />} />
+        <Route path="/clothe-warping" element={<ClotheWarping />} />
       </Routes>
       <Footer />
     </div>
