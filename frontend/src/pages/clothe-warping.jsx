@@ -12,7 +12,6 @@ function PoseCamera() {
     const fetchImages=async()=>{
     try {
       const response=await axios.get(`${url}/web/camera/get-img`,{headers:{token}});
-      console.log("Images from server:", images);
     if(response.data.success){
       setImages(response.data.images);
     }
