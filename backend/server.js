@@ -7,6 +7,7 @@ import userRoute from "./router/userRoute.js";
 import clotheRouter from "./router/clotheRouter.js";
 import cartRouter from "./router/cartRouter.js";
 import orderRouter from "./router/orderRouter.js";
+import cameraRouter from "./router/cameraCapture.js";
 // app config
 const app = express();
 // db connect
@@ -26,6 +27,8 @@ app.use("/web/cart", cartRouter);
 app.use("/web/clothe", clotheRouter);
 app.use("/images", express.static("uploads"));
 app.use("/web/user", userRoute);
+app.use('/web/camera', cameraRouter);
+app.use('/web/images', express.static("camera-img"));
 app.get("/", (req, res) => {
   res.send("hello");
 });
