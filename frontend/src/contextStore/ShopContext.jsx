@@ -12,6 +12,7 @@ const ShopContextProvider = (props) => {
   const [search, setSearch] = useState();
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState({});
+  const [selectClothe, setSelectClothe] = useState('');
   const [token, setToken] = useState();
   const url = "http://localhost:3000";
   const navigate = useNavigate();
@@ -157,6 +158,8 @@ const ShopContextProvider = (props) => {
     navigate,
     token,
     setToken,
+    selectClothe,
+    setSelectClothe,
   };
   return (
     <ShopContext.Provider value={contextValue}>

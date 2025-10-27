@@ -1,4 +1,5 @@
-import React,{ useRef, useState, useContext, useEffect } from "react";
+import React,{ useRef, useState, useContext} from "react";
+import ClotheWarpingDisplay from "./clothe-warping-display";
 import axios from "axios";
 import {ShopContext} from "../contextStore/ShopContext"
 function PoseCamera() {
@@ -8,7 +9,8 @@ function PoseCamera() {
   const [status, setStatus] = useState({ msg: "Click Start Camera to begin", type: "info" });
   const [camera, setCamera] = useState(null);
   const [images, setImages] = useState([]);
-  const {url, token} = useContext(ShopContext);
+  const {url, token, selectClothe} = useContext(ShopContext);
+  const [selectedImage, setSelectedImage] = useState(null);
     const fetchImages=async()=>{
     try {
       const response=await axios.get(`${url}/web/camera/get-img`,{headers:{token}});
@@ -26,10 +28,14 @@ function PoseCamera() {
       const blob =await data.blob();
       const filename=`capture_${Date.now()}.png`;
       const formData = new FormData();
-      formData.append("image", blob, filename)
+      if(!selectClothe){
+        alert("Please select a clothe item before uploading.");
+        return;
+      }
+      formData.append("image", blob, filename);
+      formData.append("clotheId", selectClothe);
       const response= await axios.post(`${url}/web/camera/capture-img`,formData,{headers:{token}});
       if(response.data.success){
-
         setTimeout(()=>{
           setStatus({ msg: "Image uploaded successfully!", type: "success" });
         },3000)
@@ -94,84 +100,91 @@ function PoseCamera() {
       console.error("Delete error:", error);
       setStatus({ msg: "Failed to delete images", type: "error" });
     }
-  };
+  }; 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-500 p-6">
-      <div className="bg-white/90 rounded-2xl shadow-2xl p-8 max-w-3xl w-full">
-        <h1 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          📸 Camera Capture System
-        </h1>
-        <div className="relative flex flex-col items-center mb-6">
-          <div className="relative rounded-xl overflow-hidden shadow-lg">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              className="w-[640px] h-[480px] object-cover rounded-xl"
-            />
-          </div>
+    <div className="bg-white/90 rounded-2xl shadow-2xl p-8 max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8">
+  <div className="flex-1 flex flex-col items-center">
+    <h1 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+      📸 Camera Capture System
+    </h1>
 
-          <div className="flex flex-wrap gap-3 justify-center mt-5">
-            <button
-              onClick={startCamera}
-              disabled={isRunning}
-              className="px-5 py-2 rounded-full text-white font-semibold bg-green-500 hover:bg-green-600 transition"
-            >
-              Start
-            </button>
-            <button
-              onClick={stopCamera}
-              disabled={!isRunning}
-              className="px-5 py-2 rounded-full text-white font-semibold bg-red-500 hover:bg-red-600 transition"
-            >
-              Stop
-            </button>
-            <button
-              onClick={captureImage}
-              disabled={!isRunning}
-              className="px-5 py-2 rounded-full text-white font-semibold bg-blue-500 hover:bg-blue-600 transition"
-            >
-              Capture
-            </button>
-            <button
-              onClick={deleteAll}
-              className="px-5 py-2 rounded-full text-white font-semibold bg-orange-500 hover:bg-orange-600 transition"
-            >
-              Delete All
-            </button>
-          </div>
-          <div
-            className={`mt-4 px-4 py-2 rounded-lg text-center font-medium ${
-              status.type === "success"
-                ? "bg-green-100 text-green-700"
-                : status.type === "error"
-                ? "bg-red-100 text-red-700"
-                : "bg-blue-100 text-blue-700"
-            }`}
-          >
-            {status.msg}
-          </div>
-        </div>
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold text-gray-700 mb-3">📷 Captured Images</h3>
-          {capturedImages.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {images.map((src, i) => (
-                <img
-                  key={i}
-                  src={`${url}${src.url}`}
-                  alt={`capture-${i}`}
-                  className="rounded-lg shadow hover:scale-105 transition-transform"
+    <div className="relative flex flex-col items-center mb-6">
+      <div className="relative rounded-xl overflow-hidden shadow-lg">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="w-[640px] h-[480px] object-cover rounded-xl"
+        />
+      </div>
 
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No captures yet...</p>
-          )}
-        </div>
+      <div className="flex flex-wrap gap-3 justify-center mt-5">
+        <button
+          onClick={startCamera}
+          disabled={isRunning}
+          className="px-5 py-2 rounded-full text-white font-semibold bg-green-500 hover:bg-green-600 transition"
+        >
+          Start
+        </button>
+        <button
+          onClick={stopCamera}
+          disabled={!isRunning}
+          className="px-5 py-2 rounded-full text-white font-semibold bg-red-500 hover:bg-red-600 transition"
+        >
+          Stop
+        </button>
+        <button
+          onClick={captureImage}
+          disabled={!isRunning}
+          className="px-5 py-2 rounded-full text-white font-semibold bg-blue-500 hover:bg-blue-600 transition"
+        >
+          Capture
+        </button>
+        <button
+          onClick={deleteAll}
+          className="px-5 py-2 rounded-full text-white font-semibold bg-orange-500 hover:bg-orange-600 transition"
+        >
+          Delete All
+        </button>
+      </div>
+
+      <div
+        className={`mt-4 px-4 py-2 rounded-lg text-center font-medium ${
+          status.type === "success"
+            ? "bg-green-100 text-green-700"
+            : status.type === "error"
+            ? "bg-red-100 text-red-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {status.msg}
       </div>
     </div>
+
+    <div className="mt-6 w-full">
+      <h3 className="text-xl font-semibold text-gray-700 mb-3">
+        📷 Captured Images
+      </h3>
+      {capturedImages.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {images.map((img, i) => (
+            <img
+              key={i}
+              src={`${url}${img.url}`}
+              alt={`capture-${i}`}
+              onClick={() => setSelectedImage(img._id)}
+              className="rounded-lg shadow hover:scale-105 transition-transform cursor-pointer"
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-500">No captures yet...</p>
+      )}
+    </div>
+  </div>
+  {/* Image Preview  right side*/ }
+  <ClotheWarpingDisplay personId={selectedImage} />
+</div>
   );
 }
 export default PoseCamera;

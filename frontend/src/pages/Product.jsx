@@ -5,7 +5,7 @@ import RealtedProduct from "../components/RealtedProduct";
 
 function Product() {
   const productId = useParams();
-  const { products, addCartData, currency, url } = useContext(ShopContext);
+  const { products, addCartData, currency, url, setSelectClothe } = useContext(ShopContext);
   const [productData, setProductData] = useState(false);
   const [changeImage, setChangeImage] = useState();
   const [size, setSize] = useState("");
@@ -21,9 +21,6 @@ function Product() {
   useEffect(() => {
     applyFilter();
   }, [products, productId]);
-  function handleClick(e) {
-    console.log();
-  }
   return productData ? (
     <>
       <div className="bg-gray-100">
@@ -33,7 +30,8 @@ function Product() {
               <img
                 src={`${url}/images/${changeImage}`}
                 alt="Product"
-                className="size-160 rounded-lg shadow-md mb-1 object-cover"
+                className="size-160 rounded-lg shadow-md mb-1 object-cover cursor-pointer"
+                onClick={() => setSelectClothe(productData._id)}
               />
               <div className="flex flex-col gap-4 py-4 justify-center overflow-x-auto">
                 {productData.image.map((item, index) => {

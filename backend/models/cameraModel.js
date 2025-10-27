@@ -9,6 +9,7 @@ const imageSchema = new mongoose.Schema({
   url: String,
   uploadedAt: { type: Date, default: Date.now },
   userId: { type: String, required: true },
+  clotheImg: {type: String, require: true}
 });
 
 const Image = mongoose.model("Image", imageSchema);
