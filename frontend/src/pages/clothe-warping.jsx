@@ -1,190 +1,220 @@
-import React,{ useRef, useState, useContext} from "react";
-import ClotheWarpingDisplay from "./clothe-warping-display";
+import React, { useState, useContext, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
-import {ShopContext} from "../contextStore/ShopContext"
-function PoseCamera() {
-  const videoRef = useRef(null);
-  const [isRunning, setIsRunning] = useState(false);
-  const [capturedImages, setCapturedImages] = useState([]);
-  const [status, setStatus] = useState({ msg: "Click Start Camera to begin", type: "info" });
-  const [camera, setCamera] = useState(null);
-  const [images, setImages] = useState([]);
-  const {url, token, selectClothe} = useContext(ShopContext);
-  const [selectedImage, setSelectedImage] = useState(null);
-    const fetchImages=async()=>{
-    try {
-      const response=await axios.get(`${url}/web/camera/get-img`,{headers:{token}});
-    if(response.data.success){
-      setImages(response.data.images);
-    }
-    } catch (error) {
-      console.log("Fetch images error:", error);
-    }
-  }
-  
-  const upload=async(imgData)=>{
-    try {
-      const data= await fetch(imgData);
-      const blob =await data.blob();
-      const filename=`capture_${Date.now()}.png`;
-      const formData = new FormData();
-      if(!selectClothe){
-        alert("Please select a clothe item before uploading.");
+import { ShopContext } from "../contextStore/ShopContext";
+
+function ClotheWarping() {
+  const { url, token, selectClothe } = useContext(ShopContext);
+  const [personBase64, setPersonBase64] = useState(null);
+  const [clotheBase64, setClotheBase64] = useState(null);
+  const [personPreview, setPersonPreview] = useState(null);
+  const [resultImage, setResultImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Reusable function to convert blob to base64
+  const blobToBase64 = useCallback((blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }, []);
+
+  // Convert clothing URL to base64 whenever the selected clothe changes
+  useEffect(() => {
+    let isMounted = true;
+    
+    const convertClotheToBase64 = async () => {
+      if (!selectClothe) {
+        setClotheBase64(null);
         return;
       }
-      formData.append("image", blob, filename);
-      formData.append("clotheId", selectClothe);
-      const response= await axios.post(`${url}/web/camera/capture-img`,formData,{headers:{token}});
-      if(response.data.success){
-        setTimeout(()=>{
-          setStatus({ msg: "Image uploaded successfully!", type: "success" });
-        },3000)
-        fetchImages();
+      
+      try {
+        const res = await fetch(selectClothe);
+        if (!res.ok) throw new Error("Failed to fetch clothing image");
+        
+        const blob = await res.blob();
+        const base64 = await blobToBase64(blob);
+        const [, data] = base64.split(",");
+        
+        if (isMounted) {
+          setClotheBase64(data || null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error("Clothe conversion error:", err);
+          setError("Failed to load clothing image");
+        }
       }
-    } catch (error) {
-      console.log("Upload error:", error);
-    }
-  }
-  const startCamera = async () => {
-    try {
-      setStatus({ msg: "Starting camera...", type: "info" });
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 768, height: 1024 },
-      });
-      videoRef.current.srcObject = stream;
-      setIsRunning(true);
-      setCamera(stream);
-        setStatus({ msg: "Camera started successfully!", type: "success" });
-    } catch (error) {
-      console.error(error);
-      setStatus({ msg: "Error accessing camera", type: "error" });
-    }
-  };
+    };
 
-  const stopCamera = () => {
-    if (camera) {
-      camera.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setIsRunning(false);
-    fetchImages();
-    setStatus({ msg: "Camera stopped", type: "info" });
-  };
+    convertClotheToBase64();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [selectClothe, blobToBase64]);
 
-  const captureImage = () => {
-    if (!isRunning) {
-      setStatus({ msg: "Camera not active", type: "error" });
+  const handlePersonImageChange = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file");
       return;
     }
-    const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    const imgData = canvas.toDataURL("image/png");
-    setCapturedImages((prev) => [...prev, imgData]);
-    setStatus({ msg: `Image captured! (${capturedImages.length + 1})`, type: "success" });
-    upload(imgData);
-  };
 
-  const deleteAll = async () => {
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image size must be less than 10MB");
+      return;
+    }
+
     try {
-       const response=await axios.delete(`${url}/web/camera/delete-img`,{headers:{token}});
-    if(response.data.success){
-     setImages([]);
-        setCapturedImages([]);
-        setStatus({ msg: "All images deleted", type: "success" });
-        fetchImages();
+      const base64 = await blobToBase64(file);
+      const [, data] = base64.split(",");
+      
+      setPersonBase64(data || null);
+      setPersonPreview(base64);
+      setError(null);
+    } catch (err) {
+      console.error("Person image conversion error:", err);
+      setError("Failed to process person image");
     }
-    } catch (error) {
-      console.error("Delete error:", error);
-      setStatus({ msg: "Failed to delete images", type: "error" });
+  }, [blobToBase64]);
+  const handleUpload = useCallback(async () => {
+    if (!personBase64) {
+      setError("Please select a person image");
+      return;
     }
-  }; 
+    if (!clotheBase64) {
+      setError("Please select a clothing item first");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResultImage(null);
+
+    try {
+      const response = await axios.post(
+        `${url}/web/try-on/ai-model`,
+        { personBase64, clotheBase64 },
+        { headers: { token } }
+      );
+
+      const { data } = response;
+      
+      if (data.success && data.dataUri) {
+        setResultImage(data.dataUri);
+      } else if (data.image && data.mimeType) {
+        setResultImage(`data:${data.mimeType};base64,${data.image}`);
+      } else {
+        setError(data.message || data.error || "AI model returned unexpected response");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || err.message || "Failed to process image";
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, [personBase64, clotheBase64, url, token]);
+
+  // Memoize button disabled state
+  const isButtonDisabled = useMemo(() => 
+    loading || !personBase64 || !clotheBase64,
+    [loading, personBase64, clotheBase64]
+  );
+
   return (
-    <div className="bg-white/90 rounded-2xl shadow-2xl p-8 max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8">
-  <div className="flex-1 flex flex-col items-center">
-    <h1 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-      📸 Camera Capture System
-    </h1>
-
-    <div className="relative flex flex-col items-center mb-6">
-      <div className="relative rounded-xl overflow-hidden shadow-lg">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="w-[640px] h-[480px] object-cover rounded-xl"
-        />
-      </div>
-
-      <div className="flex flex-wrap gap-3 justify-center mt-5">
-        <button
-          onClick={startCamera}
-          disabled={isRunning}
-          className="px-5 py-2 rounded-full text-white font-semibold bg-green-500 hover:bg-green-600 transition"
-        >
-          Start
-        </button>
-        <button
-          onClick={stopCamera}
-          disabled={!isRunning}
-          className="px-5 py-2 rounded-full text-white font-semibold bg-red-500 hover:bg-red-600 transition"
-        >
-          Stop
-        </button>
-        <button
-          onClick={captureImage}
-          disabled={!isRunning}
-          className="px-5 py-2 rounded-full text-white font-semibold bg-blue-500 hover:bg-blue-600 transition"
-        >
-          Capture
-        </button>
-        <button
-          onClick={deleteAll}
-          className="px-5 py-2 rounded-full text-white font-semibold bg-orange-500 hover:bg-orange-600 transition"
-        >
-          Delete All
-        </button>
-      </div>
-
-      <div
-        className={`mt-4 px-4 py-2 rounded-lg text-center font-medium ${
-          status.type === "success"
-            ? "bg-green-100 text-green-700"
-            : status.type === "error"
-            ? "bg-red-100 text-red-700"
-            : "bg-blue-100 text-blue-700"
-        }`}
-      >
-        {status.msg}
-      </div>
-    </div>
-
-    <div className="mt-6 w-full">
-      <h3 className="text-xl font-semibold text-gray-700 mb-3">
-        📷 Captured Images
-      </h3>
-      {capturedImages.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {images.map((img, i) => (
-            <img
-              key={i}
-              src={`${url}${img.url}`}
-              alt={`capture-${i}`}
-              onClick={() => setSelectedImage(img._id)}
-              className="rounded-lg shadow hover:scale-105 transition-transform cursor-pointer"
-            />
-          ))}
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-center mb-8">Virtual Try-On</h1>
+      
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
         </div>
-      ) : (
-        <p className="text-gray-500">No captures yet...</p>
       )}
+
+      <div className="w-full flex flex-col md:flex-row gap-4 justify-center items-start">
+        <div className="flex flex-col items-center">
+          <h3 className="text-lg font-semibold mb-2">Person Image</h3>
+          <div className="w-64 h-80 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden mb-2">
+            {personPreview ? (
+              <img
+                src={personPreview}
+                alt="Person preview"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                No image selected
+              </div>
+            )}
+          </div>
+          <input
+            type="file"
+            onChange={handlePersonImageChange}
+            className="mb-2 text-sm"
+            accept="image/*"
+          />
+        </div>
+
+        {/* Clothe Preview */}
+        <div className="flex flex-col items-center">
+          <h3 className="text-lg font-semibold mb-2">Selected Clothing</h3>
+          <div className="w-64 h-80 border-2 border-gray-300 rounded-lg overflow-hidden mb-2">
+            {selectClothe ? (
+              <img src={selectClothe} alt="Selected clothing" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                No clothing selected
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleUpload}
+            disabled={isButtonDisabled}
+            className={`px-6 py-2 rounded font-semibold transition ${
+              isButtonDisabled
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 active:bg-blue-700"
+            } text-white`}
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span> Processing...
+              </span>
+            ) : (
+              "Generate Try-On"
+            )}
+          </button>
+        </div>
+
+        {/* Result Image */}
+        <div className="flex flex-col items-center">
+          <h3 className="text-lg font-semibold mb-2">Result</h3>
+          <div className="w-64 h-80 border-2 border-gray-300 rounded-lg overflow-hidden mb-2">
+            {resultImage ? (
+              <img
+                src={resultImage}
+                alt="AI result"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                {loading ? "Generating..." : "Result will appear here"}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  {/* Image Preview  right side*/ }
-  <ClotheWarpingDisplay personId={selectedImage} />
-</div>
   );
 }
-export default PoseCamera;
+
+export default ClotheWarping;

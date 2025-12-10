@@ -18,8 +18,9 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 // If you need to restrict origins:
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Increase payload size limit for base64 images (50MB)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
 // end points
 app.use("/web/order", orderRouter);
@@ -27,8 +28,8 @@ app.use("/web/cart", cartRouter);
 app.use("/web/clothe", clotheRouter);
 app.use("/images", express.static("uploads"));
 app.use("/web/user", userRoute);
-app.use('/web/camera', cameraRouter);
-app.use('/web/images', express.static("camera-img"));
+app.use('/web/try-on', cameraRouter);
+
 app.get("/", (req, res) => {
   res.send("hello");
 });

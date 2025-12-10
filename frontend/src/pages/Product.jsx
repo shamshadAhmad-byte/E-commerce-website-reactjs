@@ -31,7 +31,7 @@ function Product() {
                 src={`${url}/images/${changeImage}`}
                 alt="Product"
                 className="size-160 rounded-lg shadow-md mb-1 object-cover cursor-pointer"
-                onClick={() => setSelectClothe(productData._id)}
+                onClick={() => setSelectClothe(`${url}/images/${changeImage}`)}
               />
               <div className="flex flex-col gap-4 py-4 justify-center overflow-x-auto">
                 {productData.image.map((item, index) => {
