@@ -3,14 +3,13 @@ import { ShopContext } from "../contextStore/ShopContext";
 import axios from "axios";
 
 function Order() {
-  const { url, token } = useContext(ShopContext);
+  const { url,url1, token } = useContext(ShopContext);
   const [itemsOrder, setItemsOrder] = useState([]);
   const fetchOrder = async () => {
     try {
       if (token) {
-        const response = await axios.post(
-          `${url}/web/order/userorder`,
-          {},
+        const response = await axios.get(
+          `${url}/api/order/userorder`,
           { headers: { token } }
         );
         const temp = [];
@@ -46,7 +45,7 @@ function Order() {
             >
               <div>
                 <img
-                  src={`${url}/images/${item.image[0]}`}
+                  src={`${url1}/images/${item.image[0]}`}
                   className="w-[90px] h-[105px] object-cover"
                 />
               </div>

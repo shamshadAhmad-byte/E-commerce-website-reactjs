@@ -1,6 +1,6 @@
 import React from "react";
 import axios from "axios";
-import { url } from "../admin_assets/assets";
+import { url,url1 } from "../admin_assets/assets";
 import { useState } from "react";
 import { useEffect } from "react";
 function Order() {
@@ -9,9 +9,8 @@ function Order() {
     try {
       const token = localStorage.getItem("token");
       if (token) {
-        const response = await axios.post(
-          `${url}/web/order/list`,
-          {},
+        const response = await axios.get(
+          `${url}/api/order/listorders`,
           { headers: { token } }
         );
         if (response.data.orders) {
@@ -43,7 +42,7 @@ function Order() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${url}/web/order/updatestatus`,
+        `${url}/api/order/updatestatus`,
         { orderId, status },
         { headers: { token } }
       );
@@ -66,7 +65,7 @@ function Order() {
             key={index}
           >
             <img
-              src={`${url}/images/${order.image}`}
+              src={`${url1}/images/${order.image}`}
               className="w-[100px] h-[150px] object-cover self-center"
             />
             <div className="flex flex-col gap-1">

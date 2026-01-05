@@ -1,5 +1,7 @@
 const http=require("http");
 const express=require("express");
+const dotenv=require("dotenv");
+dotenv.config();
 const connectDB=require("./db/connectDB");
 const orderRouter=require("./routes/order.routes");
 const rabbitMQ=require("./service/rabbit");

@@ -1,5 +1,7 @@
 const http=require("http");
 const express=require("express");
+const dotenv=require("dotenv");
+dotenv.config();
 const connectDB=require("./db/connectDB");
 const userRoutes=require("./routes/user.routes");
 const cartRouter=require("./routes/cartData.routes");

@@ -1,11 +1,9 @@
 const amqp = require("amqplib");
 
-const RABBITMQ_URL = "amqps://iklpipra:Ld098eEq9NXhGVk1ffSUGvK6enoy4mTG@jaragua.lmq.cloudamqp.com/iklpipra";
-
 let connection, channel;
 
 async function connect() {
-  connection = await amqp.connect(RABBITMQ_URL);
+  connection = await amqp.connect(process.env.RABBITMQ_URL);
   channel = await connection.createChannel();
   console.log("Connected to RabbitMQ");
 }

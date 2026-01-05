@@ -14,7 +14,8 @@ const ShopContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
   const [selectClothe, setSelectClothe] = useState('');
   const [token, setToken] = useState();
-  const url = "http://localhost:3000";
+  const url = "http://localhost:8000";
+  const url1 = "http://localhost:8002";
   const navigate = useNavigate();
   const addCartData = async (itemId, size) => {
     if (!size) {
@@ -36,7 +37,7 @@ const ShopContextProvider = (props) => {
     if (token) {
       try {
         const response = await axios.post(
-          `${url}/web/cart/add`,
+          `${url}/api/user/cart/addcart`,
           { itemId, size },
           { headers: { token } }
         );
@@ -61,12 +62,16 @@ const ShopContextProvider = (props) => {
     const cartData = structuredClone(cartItems);
     cartData[itemId][size] = quantity;
     setCartItems(cartData);
+
     if (quantity == 0 && token) {
       try {
-        const response = await axios.post(
-          `${url}/web/cart/remove`,
-          { itemId, size },
-          { headers: { token } }
+        
+        const response = await axios.delete(
+          `${url}/api/user/cart/deletecart`,
+          { headers: { token },
+          data: { itemId, size}
+         },
+          
         );
         if (!response.data.success) {
           alert(response.data.message);
@@ -76,8 +81,8 @@ const ShopContextProvider = (props) => {
       }
     } else {
       try {
-        const response = await axios.post(
-          `${url}/web/cart/update`,
+        const response = await axios.put(
+          `${url}/api/user/cart/updatecart`,
           { itemId, size, quantity },
           { headers: { token } }
         );
@@ -106,7 +111,7 @@ const ShopContextProvider = (props) => {
   };
   const getProductData = async () => {
     try {
-      const response = await axios.get(`${url}/web/clothe/list`, {});
+      const response = await axios.get(`${url}/api/product/clothes/listclothe`);
       if (response.data.success) {
         setProducts(response.data.clothe);
       } else {
@@ -118,9 +123,8 @@ const ShopContextProvider = (props) => {
   };
   const getCartData = async (token1) => {
     try {
-      const response = await axios.post(
-        `${url}/web/cart/get`,
-        {},
+      const response = await axios.get(
+        `${url}/api/user/cart/getcart`,
         { headers: { token: token1 } }
       );
       if (response.data.success) {
@@ -155,6 +159,7 @@ const ShopContextProvider = (props) => {
     updateQuantity,
     getAmount,
     url,
+    url1,
     navigate,
     token,
     setToken,

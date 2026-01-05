@@ -1,16 +1,15 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { url } from "../admin_assets/assets";
+import { url, url1 } from "../admin_assets/assets";
 
 function List() {
   const [list, setList] = useState([]);
 
   const fetchList = async () => {
     try {
-      const response = await axios.get(`${url}/web/clothe/list`, {});
+      const response = await axios.get(`${url}/api/product/clothes/listclothe`);
       if (response.data.success) {
         setList(response.data.clothe);
-        console.log(response.data.clothe); // Log the fetched data
       } else {
         alert(response.data.message);
       }
@@ -24,7 +23,7 @@ function List() {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.post(
-        `${url}/web/clothe/remove`,
+        `${url}/api/product/clothes/removeclothe`,
         { id },
         { headers: { token } }
       );
@@ -56,7 +55,7 @@ function List() {
                 item.image.map((image, index) => {
                   return (
                     <img
-                      src={`${url}/images/${image}`}
+                      src={`${url1}/images/${image}`}
                       className="h-[100px] w-[70px] object-cover"
                       key={index}
                     />

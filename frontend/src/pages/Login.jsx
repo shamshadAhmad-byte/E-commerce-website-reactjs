@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../contextStore/ShopContext";
 import axios from "axios";
-import { cache } from "react";
 
 export default function Login() {
   const { url, navigate, setToken, token } = useContext(ShopContext);
@@ -21,10 +20,11 @@ export default function Login() {
     try {
       let newUrl;
       if (login === "login") {
-        newUrl = `${url}/web/user/login`;
+        newUrl = `${url}/api/user/login`;
       } else {
-        newUrl = `${url}/web/user/register`;
+        newUrl = `${url}/api/user/register`;
       }
+
       const response = await axios.post(newUrl, data);
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
@@ -65,7 +65,7 @@ export default function Login() {
               type="text"
               id="name"
               name="name"
-              value={data.username}
+              value={data.name}
               onChange={onChangeHandle}
               required
               className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-500"

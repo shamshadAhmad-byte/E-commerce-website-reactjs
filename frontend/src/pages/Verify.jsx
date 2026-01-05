@@ -13,7 +13,7 @@ function Verify() {
       return null;
     }
     const response = await axios.post(
-      `${url}/web/order/verifyorder`,
+      `${url}/api/order/verifyorder`,
       { success, orderId },
       { headers: { token } }
     );

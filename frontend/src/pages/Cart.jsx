@@ -10,7 +10,7 @@ function Cart() {
     getAmount,
     currency,
     navigate,
-    url,
+    url1
   } = useContext(ShopContext);
   const [cartData, setCartCData] = useState([]);
 
@@ -58,7 +58,7 @@ function Cart() {
                           <div className="flex items-center">
                             <img
                               className="h-16 w-16 mr-4"
-                              src={`${url}/images/${productData.image[0]}`}
+                              src={`${url1}/images/${productData.image[0]}`}
                               alt="Product image"
                             />
                             <div className="flex flex-col">

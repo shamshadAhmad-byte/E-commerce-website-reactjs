@@ -5,7 +5,7 @@ import RealtedProduct from "../components/RealtedProduct";
 
 function Product() {
   const productId = useParams();
-  const { products, addCartData, currency, url, setSelectClothe } = useContext(ShopContext);
+  const { products, addCartData, currency, url1, setSelectClothe } = useContext(ShopContext);
   const [productData, setProductData] = useState(false);
   const [changeImage, setChangeImage] = useState();
   const [size, setSize] = useState("");
@@ -28,16 +28,16 @@ function Product() {
           <div className="flex flex-wrap">
             <div className="w-full md:w-1/2 pl-10 mb-8 flex flex-row">
               <img
-                src={`${url}/images/${changeImage}`}
+                src={`${url1}/images/${changeImage}`}
                 alt="Product"
                 className="size-160 rounded-lg shadow-md mb-1 object-cover cursor-pointer"
-                onClick={() => setSelectClothe(`${url}/images/${changeImage}`)}
+                onClick={() => setSelectClothe(`${url1}/images/${changeImage}`)}
               />
               <div className="flex flex-col gap-4 py-4 justify-center overflow-x-auto">
                 {productData.image.map((item, index) => {
                   return (
                     <img
-                      src={`${url}/images/${item}`}
+                      src={`${url1}/images/${item}`}
                       onClick={() => setChangeImage(item)}
                       alt="Thumbnail 1"
                       className="size-[100px] sm:size-30 object-cover rounded-md cursor-pointer opacity-60 hover:opacity-100 transition duration-300 mx-10"

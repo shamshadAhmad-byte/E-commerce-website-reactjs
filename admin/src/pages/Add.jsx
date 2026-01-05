@@ -44,7 +44,7 @@ function Add() {
       formData.append("image", image);
     });
     const token = localStorage.getItem("token");
-    const response = await axios.post(`${url}/web/clothe/add`, formData, {
+    const response = await axios.post(`${url}/api/product/clothes/addclothe`, formData, {
       headers: { token },
     });
     if (response.data.success) {

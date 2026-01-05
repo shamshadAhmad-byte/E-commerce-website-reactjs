@@ -6,7 +6,7 @@ const addCart=async(req,res)=>{
     try {
         const userData=await userModel.findById(userId);
         if(!userData){
-            return res.status(404).json({success: false,message:"user not found"});
+            return res.json({success: false,message:"user not found"});
         }
         const cartData=await userData.cartData;
         if(cartData[itemId]){
@@ -20,10 +20,10 @@ const addCart=async(req,res)=>{
             cartData[itemId][size]=1;
         }
         await userModel.findByIdAndUpdate(userId,{cartData: cartData});
-        res.status(200).json({success:true,message:"item added to cart"});
+        res.json({success:true,message:"item added to cart"});
     } catch (error) {
         console.log(error);
-        res.status(500).json({success: false,message: "Internal server error"});
+        res.json({success: false,message: "Internal server error"});
     }
 }
 const getCart=async(req,res)=>{
@@ -31,13 +31,13 @@ const getCart=async(req,res)=>{
     try {
         const userData=await userModel.findById(userId);
         if(!userData){
-            return res.status(404).json({success: false,message:"user not found"});
+            return res.json({success: false,message:"user not found"});
         }
         const cartData=await userData.cartData;
-        res.status(200).json({success: true, cartData: cartData});
+        res.json({success: true, cartData: cartData});
     } catch (error) {
         console.log(error);
-        res.status(500).json({success: false, message: "internal server error"});
+        res.json({success: false, message: "internal server error"});
     }
 }
 const updateCart=async(req,res)=>{
@@ -51,18 +51,24 @@ const updateCart=async(req,res)=>{
             }
         }
         await userModel.findByIdAndUpdate(userId,{cartData: cartData});
-        res.status(200).json({success: true, message: "cart updated successfully"});
+        res.json({success: true, message: "cart updated successfully"});
     } catch (error) {
         console.log(error);
-        res.status(500).json({success: false, message: "Internal server error"});
+        res.json({success: false, message: "Internal server error"});
     }
 
 }
 const deleteCart=async(req,res)=>{
     try {
         const {userId,itemId,size}=req.body;
+        if (!userId || !itemId || !size) {
+            return res.json({
+            success: false,
+            message: "userId, itemId and size are required",
+      });
+    }
         const userData=await userModel.findById(userId);
-        const cartData= await userData.cartData;
+        const cartData= await userData.cartData || {};
         if(Object.keys(cartData[itemId]).length>1){
             delete cartData[itemId][size];
         }
@@ -70,10 +76,10 @@ const deleteCart=async(req,res)=>{
             delete cartData[itemId];
         }
         await userModel.findByIdAndUpdate(userId,{cartData: cartData});
-        res.status(200).json({success: true, message: "item deleted from cart"});
+        res.json({success: true, message: "item deleted from cart"});
     } catch (error) {
         console.log(error);
-        res.status(500).json({success: false, message: "Internal server error"});
+        res.json({success: false, message: "Internal server error"});
     }
 }
 

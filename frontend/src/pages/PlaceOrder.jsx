@@ -58,7 +58,7 @@ function PlaceOrder() {
           };
           try {
             const response = await axios.post(
-              `${url}/web/order/placeordercod`,
+              `${url}/api/order/placeordercod`,
               orderData,
               { headers: { token } }
             );
@@ -78,7 +78,7 @@ function PlaceOrder() {
               origin: document.location.origin,
             };
             const response = await axios.post(
-              `${url}/web/order/placeorderstripe`,
+              `${url}/api/order/placeorderstripe`,
               { orderData },
               { headers: { token } }
             );

@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import { ShopContext } from "../contextStore/ShopContext";
 
 function RelatedProductDisplay({ id, name, price, image }) {
-  const { currency, url } = useContext(ShopContext);
+  const { currency, url1 } = useContext(ShopContext);
   return (
     <Link to={`/product/${id}`}>
       <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white">
         <img
           className="size-[150px] object-cover"
-          src={`${url}/images/${image[0]}`}
+          src={`${url1}/images/${image[0]}`}
           alt="Product Image"
         />
 

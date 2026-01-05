@@ -5,17 +5,16 @@ const adminMiddleware=require("../middleware/admin.middleware")
 
 const orderRouter=express.Router();
 //order placed status
-orderRouter.post("/place-order-cod",userMiddleware,placedOrderCOD);
-orderRouter.post("/place-order-stripe",userMiddleware,placedOrderStripe);
+orderRouter.post("/placeordercod",userMiddleware,placedOrderCOD);
+orderRouter.post("/placeorderstripe",userMiddleware,placedOrderStripe);
 
 // list of orders
-orderRouter.get("/list-orders",adminMiddleware,listOrder);
-
+orderRouter.get("/listorders",adminMiddleware,listOrder);
 // list display frontend
-orderRouter.get("/user-orders/",userMiddleware,userOrder);
+orderRouter.get("/userorder",userMiddleware,userOrder);
 
 //verify and update order status
-orderRouter.put("/update-status/",adminMiddleware,updateStatus);
-orderRouter.post("/verify-order",userMiddleware,verifyOrder);
+orderRouter.put("/updatestatus",adminMiddleware,updateStatus);
+orderRouter.post("/verifyorder",userMiddleware,verifyOrder);
 
 module.exports=orderRouter;

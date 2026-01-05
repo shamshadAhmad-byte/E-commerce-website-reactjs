@@ -1,32 +1,76 @@
 const amqp = require("amqplib");
 
-const RABBITMQ_URL = "amqps://iklpipra:Ld098eEq9NXhGVk1ffSUGvK6enoy4mTG@jaragua.lmq.cloudamqp.com/iklpipra";
 
-let connection, channel;
+let connection = null;
+let channel = null;
+let isConnecting = false;
 
 async function connect() {
-  connection = await amqp.connect(RABBITMQ_URL);
-  channel = await connection.createChannel();
-  console.log("Connected to RabbitMQ");
+  if (isConnecting) return;
+  isConnecting = true;
+
+  try {
+    connection = await amqp.connect(process.env.RABBITMQ_URL);
+
+    connection.on("error", (err) => {
+      console.error("RabbitMQ connection error", err.message);
+    });
+
+    connection.on("close", () => {
+      console.warn("RabbitMQ connection closed. Reconnecting...");
+      channel = null;
+      connection = null;
+      setTimeout(connect, 5000);
+    });
+
+    channel = await connection.createChannel();
+
+    channel.on("error", (err) => {
+      console.error("RabbitMQ channel error", err.message);
+    });
+
+    channel.on("close", () => {
+      console.warn("RabbitMQ channel closed");
+      channel = null;
+    });
+
+    console.log("Connected to RabbitMQ");
+  } catch (err) {
+    console.error("RabbitMQ connection failed", err.message);
+    setTimeout(connect, 5000);
+  } finally {
+    isConnecting = false;
+  }
 }
 
-async function subscribeToQueue(queueName, callback) {
+async function publishToQueue(queue, data) {
   if (!channel) await connect();
-  await channel.assertQueue(queueName);
-  channel.consume(queueName, (message) => {
-    callback(message.content.toString());
-    channel.ack(message);
+  await channel.assertQueue(queue, { durable: true });
+  channel.sendToQueue(queue, Buffer.from(JSON.stringify(data)), {
+    persistent: true,
   });
 }
 
-async function publishToQueue(queueName, data) {
+async function subscribeToQueue(queue, callback) {
   if (!channel) await connect();
-  await channel.assertQueue(queueName);
-  channel.sendToQueue(queueName, Buffer.from(data));
+  await channel.assertQueue(queue, { durable: true });
+
+  channel.consume(queue, (msg) => {
+    if (!msg) return;
+
+    try {
+      const data = JSON.parse(msg.content.toString());
+      callback(data);
+      channel.ack(msg);
+    } catch (err) {
+      console.error("Consumer error", err.message);
+      channel.nack(msg, false, true); // requeue
+    }
+  });
 }
 
 module.exports = {
-  subscribeToQueue,
-  publishToQueue,
   connect,
+  publishToQueue,
+  subscribeToQueue,
 };
