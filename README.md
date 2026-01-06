@@ -85,14 +85,15 @@ ecommerce-microservices/
 │
 ├── frontend/
 │
-backend-microservices
-    ├── api-gateway/
-    │
-    ├── user-service/
-    │
-    ├── product-service/
-    │
-    ├── order-service/
-
+|── backend-microservices
+|       |── api-gateway/
+|       │
+|       ├── user-service/
+|       │
+|       ├── product-service/
+|       │
+|       ├── order-service/
+|
+|──admin
 
 
