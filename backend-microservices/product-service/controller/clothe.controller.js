@@ -1,11 +1,16 @@
 const clotheModel=require("../models/clothe.model");
-const fs=require("fs");
+const uploadToCloudinary=require("../utils/cloudinaryUpload");
+const cloudinary=require("../utils/cloudinary");
 const addClothe = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.json({ success: false, message: "Add file" });
     }
-    const temp = req.files.map((information) => information.filename);
+    const temp = [];
+    const result=await uploadToCloudinary(req.files);
+    result.forEach((element)=>{
+        temp.push({public_id: element.public_id, url: element.secure_url});
+    })
     const newclothe = new clotheModel({
       name: req.body.name,
       description: req.body.description,
@@ -27,9 +32,13 @@ const addClothe = async (req, res) => {
 const removeClothe = async (req, res) => {
   try {
     const deleteData = await clotheModel.findById(req.body.id);
-    deleteData.image.forEach((element) => {
-      fs.unlink(`uploads/${element}`, () => {});
+    if(!deleteData){
+      return res.json({ success: false, message: "Clothe not found" });
+    }
+    deleteData.image.forEach(async (element) => {
+      await cloudinary.uploader.destroy(element.public_id);
     });
+    
     await clotheModel.findByIdAndDelete(req.body.id);
     res.json({ success: true, message: "remove successful" });
   } catch (error) {
