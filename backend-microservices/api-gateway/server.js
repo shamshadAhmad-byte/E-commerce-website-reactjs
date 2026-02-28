@@ -30,25 +30,33 @@ const limiter=rateLimit({
 })
 app.use(limiter);
 
-app.use("/api/user", proxy("http://localhost:8001", {
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://user-service:8001";
+const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || "http://product-service:8002";
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || "http://order-service:8003";
+
+app.use("/api/user", proxy(USER_SERVICE_URL, {
     proxyReqPathResolver: (req)=>{
         req.originalUrl = req.originalUrl.replace("/api/user", "");
         return req.originalUrl;
     }
 }));
-app.use("/api/product", proxy("http://localhost:8002",{
+
+app.use("/api/product", proxy(PRODUCT_SERVICE_URL,{
     proxyReqPathResolver: (req)=>{
         req.originalUrl = req.originalUrl.replace("/api/product", "");
         return req.originalUrl;
     }
 }));
-app.use("/api/order", proxy("http://localhost:8003", {
+
+app.use("/api/order", proxy(ORDER_SERVICE_URL, {
     proxyReqPathResolver: (req)=>{
         req.originalUrl = req.originalUrl.replace("/api/order", "");
         return req.originalUrl;
     }
 }));
-
+app.get("/", (req,res)=>{
+    res.send("Welcome to API Gateway");
+})
 
 server.listen(8000,()=>{
     console.log("API Gateway running on port 8000")

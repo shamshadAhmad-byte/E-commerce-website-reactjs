@@ -28,7 +28,7 @@ const userRegistration=async(req,res)=>{
 
     } catch (error) {
         console.log(error);
-        res.json({success: false, message: "Internal server error"});
+        res.json({success: false, message: error.message});
     }
 }
 const userLogin=async(req,res)=>{
@@ -47,7 +47,7 @@ const userLogin=async(req,res)=>{
 
     } catch (error) {
         console.log(error);
-        res.json({success: false, message: "Internal server error"});
+        res.json({success: false, message: error.message});
     }
 
 }
@@ -73,7 +73,7 @@ const userUpdate=async(req,res)=>{
         res.json({success: true, message: "User updated successfully"});
     } catch (error) {
         console.log(error);
-        res.json({success: false, message: "Internal server error"});
+        res.json({success: false, message: error.message});
     }
 
 }
@@ -86,7 +86,7 @@ const userGet=async(req,res)=>{
         res.json({success: true, user: userExist});
     }catch(error){
         console.log(error);
-        res.json({success: false, message: "Internal server error"});
+        res.json({success: false, message: error.message});
     }
 }
 
